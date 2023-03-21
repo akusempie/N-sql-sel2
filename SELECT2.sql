@@ -13,11 +13,14 @@ FROM tracks JOIN albums
 ON tracks.album_id=albums.id
 GROUP BY albums.name;
 
-SELECT artists.name
-FROM artists 
-JOIN artistsalbums ON artists.id=artistsalbums.artist_id 
-JOIN albums ON albums.id=artistsalbums.album_id
-WHERE YEAR NOT IN (2020);
+SELECT *
+FROM artists
+WHERE id NOT IN (
+  SELECT artist_id
+  FROM artistsalbums
+  INNER JOIN albums ON artistsalbums.album_id = albums.id
+  WHERE albums.year = 2020
+);
 
 SELECT DISTINCT collections.name 
 FROM collections
@@ -49,8 +52,8 @@ JOIN albums ON albums.id=artistsalbums.album_id
 FULL JOIN tracks ON tracks.album_id=albums.id 
 WHERE duration = (SELECT MIN(duration) FROM tracks);
 
-SELECT albums.name, COUNT(tracks.album_id) h
-FROM albums FULL JOIN tracks ON tracks.album_id = albums.id
-GROUP BY albums.name
-ORDER BY h LIMIT 1;
+SELECT name FROM albums
+WHERE id IN (SELECT album_id FROM tracks GROUP BY album_id HAVING COUNT(*) =
+(SELECT MIN(track_count) FROM (SELECT COUNT(*) AS track_count 
+FROM tracks GROUP BY album_id) AS track_counts));
 
